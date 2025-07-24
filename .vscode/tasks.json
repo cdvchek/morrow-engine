@@ -1,0 +1,27 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Run Main",
+            "type": "shell",
+            "windows": {
+                "command": ".\\main.exe"
+            },
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "group": "build"
+        },
+        {
+            "label": "Build Main",
+            "type": "shell",
+            "windows": {
+                "command": "clang main.c -o main.exe -lUser32"
+            },
+            "options": {
+                "cwd": "${workspaceFolder}\\src"
+            },
+            "group": "build"
+        }
+    ]
+}

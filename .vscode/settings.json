@@ -1,0 +1,58 @@
+{
+    "workbench.colorTheme": "Dracula Theme",
+    "editor.minimap.enabled": false,
+    "files.associations": {
+        "*.h": "c",
+        "*.c": "c",
+        "cmath": "c",
+        "array": "c"
+    },
+    "editor.fontSize": 16,
+    "editor.tabSize": 4,
+    "editor.insertSpaces": true,
+    "editor.formatOnSave": true,
+    "editor.formatOnPaste": true,
+    "C_Cpp.clang_format_style": "{ BasedOnStyle: Google, IndentWidth: 4, ColumnLimit: 0, NamespaceIndentation: All}",
+    "todohighlight.isEnable": true,
+    "todohighlight.keywords": [
+        {
+            "text": "TODO:",
+            "color": "#FF0000",
+            "backgroundColor": "rgba(0,0,0,0)"
+        },
+        {
+            "text": "HACK:",
+            "color": "#ff6600",
+            "backgroundColor": "rgba(0,0,0,0)"
+        },
+        {
+            "text": "NOTE:",
+            "color": "green",
+            "backgroundColor": "rgba(0,0,0,0)"
+        }
+    ],
+    "C_Cpp.errorSquiggles": "enabled",
+    "editor.tokenColorCustomizations": {
+        "textMateRules": [
+            {
+                "scope": "entity.name.function.preprocessor",
+                "settings": {
+                    "foreground": "#3ba83b",
+                }
+            },
+            {
+                "scope": "variable",
+                "settings": {
+                    "foreground": "#fdf3ff"
+                }
+            },
+            {
+                "scope": "variable.other.enummember",
+                "settings": {
+                    "foreground": "#d98fdb",
+                    "fontStyle": "italic"
+                }
+            }
+        ]
+    }
+}
