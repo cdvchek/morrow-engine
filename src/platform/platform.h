@@ -1,5 +1,6 @@
 #pragma once
 
+#include "../core/input.h"
 #include "defines.h"
 
 b8 platform_init();
