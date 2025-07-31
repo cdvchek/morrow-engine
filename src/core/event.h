@@ -22,12 +22,23 @@ typedef struct event_context {
     } data;
 } event_context;
 
-typedef b8 (*PFN_on_event)(u16 code, void* sender, void* listener, event_context context);
+typedef enum event_code {
+    EVENT_CODE_KEY_PRESSED,
+    EVENT_CODE_KEY_RELEASED,
+    EVENT_CODE_MOUSE_MOVED,
+    EVENT_CODE_MOUSE_WHEEL,
+    EVENT_CODE_AXIS_CHANGE,
+    EVENT_CODE_QUIT,
+    EVENT_CODE_WINDOW_RESIZED,
+    EVENT_CODE_COUNT
+} event_code;
+
+typedef b8 (*PFN_on_event)(event_code code, void* sender, void* listener, event_context context);
 
 b8 event_init();
 void event_shutdown();
 
-b8 event_register(u16 code, void* listener, PFN_on_event on_event);
-b8 event_unregister(u16 code, void* listener, PFN_on_event on_event);
+b8 event_register(event_code code, void* listener, PFN_on_event on_event);
+b8 event_unregister(event_code code, void* listener, PFN_on_event on_event);
 
-b8 event_fire(u16 code, void* sender, event_context context);
+b8 event_fire(event_code code, void* sender, event_context context);

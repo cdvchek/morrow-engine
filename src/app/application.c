@@ -2,6 +2,7 @@
 
 #include "core/clock.h"
 #include "core/event.h"
+#include "core/input.h"
 #include "core/logger.h"
 #include "platform/platform.h"
 
@@ -13,6 +14,10 @@ typedef struct application_state {
 
 static b8 initialized = FALSE;
 static application_state app_state;
+
+b8 application_on_key_press(event_code code, void* sender, void* listener, event_context context);
+b8 application_on_mouse_move(event_code code, void* sender, void* listener, event_context context);
+b8 application_on_quit(event_code code, void* sender, void* listener, event_context context);
 
 b8 app_init() {
     if (initialized) {
@@ -33,6 +38,15 @@ b8 app_init() {
         return FALSE;
     }
 
+    if (!input_init()) {
+        LOG_FATAL("Input initialization failed.");
+        return FALSE;
+    }
+
+    event_register(EVENT_CODE_KEY_PRESSED, NULL, application_on_key_press);
+    event_register(EVENT_CODE_MOUSE_MOVED, NULL, application_on_mouse_move);
+    event_register(EVENT_CODE_QUIT, NULL, application_on_quit);
+
     app_state.is_running = TRUE;
     initialized = TRUE;
 
@@ -40,11 +54,15 @@ b8 app_init() {
 }
 
 void app_shutdown() {
+    event_unregister(EVENT_CODE_KEY_PRESSED, NULL, application_on_key_press);
+    event_unregister(EVENT_CODE_MOUSE_MOVED, NULL, application_on_mouse_move);
+    event_unregister(EVENT_CODE_QUIT, NULL, application_on_quit);
+
     event_shutdown();
     platform_shutdown();
     logger_shutdown();
+
     initialized = FALSE;
-    app_state.is_running = FALSE;
 }
 
 b8 app_run() {
@@ -94,6 +112,8 @@ b8 app_run() {
         app_state.last_time = current_time;
     }
 
+    app_shutdown();
+
     return TRUE;
 }
 
@@ -103,4 +123,27 @@ void log_test() {
     LOG_WARN("A test message: %.2f", 3.14f);
     LOG_INFO("A test message: %.2f", 3.14f);
     LOG_DEBUG("A test message: %.2f", 3.14f);
+}
+
+b8 application_on_mouse_move(event_code code, void* sender, void* listener, event_context context) {
+    u32 x = context.data.i32[0];
+    u32 y = context.data.i32[1];
+
+    LOG_INFO("mouse move, x: %d, y: %d", x, y);
+    return FALSE;
+}
+
+b8 application_on_key_press(event_code code, void* sender, void* listener, event_context context) {
+    input_code key = context.data.u16[0];
+    if (key == K_ESCAPE) {
+        event_context context = {0};
+        event_fire(EVENT_CODE_QUIT, NULL, context);
+        return TRUE;
+    }
+    return FALSE;
+}
+
+b8 application_on_quit(event_code code, void* sender, void* listener, event_context context) {
+    app_state.is_running = FALSE;
+    return TRUE;
 }

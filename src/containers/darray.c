@@ -99,7 +99,7 @@ void _darray_pop(void* array, void* dest) {
     u64 stride = DARRAY_GET_FIELD(array, DARRAY_STRIDE);
 
     // check if empty
-    if (length <= 0) return NULL;
+    if (length <= 0) return;
 
     u8* remove_addr = (u8*)array + ((length - 1) * stride);
 

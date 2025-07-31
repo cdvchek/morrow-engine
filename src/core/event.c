@@ -4,13 +4,6 @@
 #include "core/logger.h"
 #include "core/memsys.h"
 
-typedef enum event_code {
-    EVENT_CODE_KEY_PRESSED,
-    EVENT_CODE_KEY_RELEASED,
-    EVENT_CODE_QUIT,
-    EVENT_CODE_WINDOW_RESIZED
-} event_code;
-
 typedef struct registered_event {
     void* listener;
     PFN_on_event callback;
@@ -57,7 +50,7 @@ void event_shutdown() {
     is_initialized = FALSE;
 }
 
-b8 event_register(u16 code, void* listener, PFN_on_event on_event) {
+b8 event_register(event_code code, void* listener, PFN_on_event on_event) {
     if (!is_initialized) {
         LOG_WARN("event_register() called before event_init().");
         return FALSE;
@@ -86,28 +79,30 @@ b8 event_register(u16 code, void* listener, PFN_on_event on_event) {
     return TRUE;
 }
 
-b8 event_unregister(u16 code, void* listener, PFN_on_event on_event) {
+b8 event_unregister(event_code code, void* listener, PFN_on_event on_event) {
     if (!is_initialized) {
         LOG_WARN("event_unregister() called before event_init().");
         return FALSE;
     }
 
-    registered_event* event;
     u64 registered_count = darray_length(state.registered_events[code].events);
     for (u64 i = 0; i < registered_count; i++) {
         if (state.registered_events[code].events[i].callback == on_event && state.registered_events[code].events[i].listener == listener) {
-            darray_remove(state.registered_events[code].events, event, i);
+            registered_event event;
+            darray_remove(state.registered_events[code].events, &event, i);
         }
     }
 
     return TRUE;
 }
 
-b8 event_fire(u16 code, void* sender, event_context context) {
+b8 event_fire(event_code code, void* sender, event_context context) {
     if (!is_initialized) {
         LOG_WARN("event_fire() called before event_init()");
         return FALSE;
     }
+
+    if (!state.registered_events[code].events) return FALSE;
 
     u64 registered_count = darray_length(state.registered_events[code].events);
     for (u64 i = 0; i < registered_count; i++) {

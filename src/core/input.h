@@ -154,6 +154,16 @@ typedef enum input_code {
     INPUT_CODE_COUNT
 } input_code;
 
+typedef enum axis_code {
+    AXIS_LSTICK_X,
+    AXIS_LSTICK_Y,
+    AXIS_RSTICK_X,
+    AXIS_RSTICK_Y,
+    AXIS_LTRIGGER,
+    AXIS_RTRIGGER,
+    AXIS_CODE_COUNT
+} axis_code;
+
 b8 input_init();
 
 void input_update();

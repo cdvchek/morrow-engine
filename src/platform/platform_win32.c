@@ -1,6 +1,8 @@
 #include <malloc.h>
 #include <windows.h>
+#include <windowsx.h>
 
+#include "core/event.h"
 #include "core/logger.h"
 #include "platform.h"
 
@@ -147,10 +149,58 @@ void* platform_move_memory(void* dest, const void* source, u64 size) {
 
 LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM w_Param, LPARAM l_Param) {
     switch (msg) {
-        default:
-            return DefWindowProc(hwnd, msg, w_Param, l_Param);
+        case WM_QUIT:
+            break;
+
+        case WM_DESTROY:
+            PostQuitMessage(0);
+            break;
+
+        case WM_LBUTTONDOWN:
+            input_process_button(input_translation[VK_LBUTTON], TRUE);
+            break;
+        case WM_RBUTTONDOWN:
+            input_process_button(input_translation[VK_RBUTTON], TRUE);
+            break;
+        case WM_MBUTTONDOWN:
+            input_process_button(input_translation[VK_MBUTTON], TRUE);
+            break;
+        case WM_XBUTTONDOWN:
+            input_process_button(input_translation[(GET_XBUTTON_WPARAM(w_Param) == XBUTTON1 ? VK_XBUTTON1 : VK_XBUTTON2)], TRUE);
+            break;
+        case WM_LBUTTONUP:
+            input_process_button(input_translation[VK_LBUTTON], FALSE);
+            break;
+        case WM_RBUTTONUP:
+            input_process_button(input_translation[VK_RBUTTON], FALSE);
+            break;
+        case WM_MBUTTONUP:
+            input_process_button(input_translation[VK_MBUTTON], FALSE);
+            break;
+        case WM_XBUTTONUP:
+            input_process_button(input_translation[(GET_XBUTTON_WPARAM(w_Param) == XBUTTON1 ? VK_XBUTTON1 : VK_XBUTTON2)], FALSE);
+            break;
+        case WM_MOUSEMOVE:
+            input_process_mouse_move(GET_X_LPARAM(l_Param), GET_Y_LPARAM(l_Param));
+            break;
+        case WM_MOUSEWHEEL:
+            i32 scroll = GET_WHEEL_DELTA_WPARAM(w_Param);
+            if (scroll != 0) {
+                scroll = (scroll > 0) ? 1 : -1;
+                input_process_mouse_scroll(scroll);
+            }
+            break;
+
+        case WM_KEYDOWN:
+        case WM_SYSKEYDOWN:
+            input_process_button(input_translation[(UINT)w_Param], TRUE);
+            break;
+        case WM_KEYUP:
+        case WM_SYSKEYUP:
+            input_process_button(input_translation[(UINT)w_Param], FALSE);
+            break;
     }
-    return 0;
+    return DefWindowProc(hwnd, msg, w_Param, l_Param);
 }
 
 void input_translation_array_init() {
