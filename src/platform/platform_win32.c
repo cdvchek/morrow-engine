@@ -2,8 +2,14 @@
 #include <windows.h>
 #include <windowsx.h>
 
+// TODO: create custom string system to replace this
+#include <string.h>
+
+#include "containers/darray.h"
 #include "core/event.h"
+#include "core/input.h"
 #include "core/logger.h"
+#include "core/memsys.h"
 #include "platform.h"
 
 static f64 clock_frequency;
@@ -14,7 +20,7 @@ static input_code input_translation[254];
 LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM w_Param, LPARAM l_Param);
 void input_translation_array_init();
 
-b8 platform_init() {
+b8 platform_init(u32 x, u32 y, u32 width, u32 height) {
     WNDCLASSEXW wc;
     HWND handle;
     HINSTANCE hInstance = GetModuleHandleW(NULL);
@@ -45,7 +51,7 @@ b8 platform_init() {
         L"main_window_class",
         L"Morrow Engine",
         WS_OVERLAPPEDWINDOW,
-        CW_USEDEFAULT, CW_USEDEFAULT, 240, 120,
+        x, y, width, height,
         NULL, NULL, hInstance, NULL);
 
     if (handle == NULL) {
@@ -87,6 +93,61 @@ f64 platform_get_absolute_time() {
     return (f64)now.QuadPart * clock_frequency;
 }
 
+BOOL CALLBACK count_display_monitors(HMONITOR h_monitor, HDC hdc_monitor, LPRECT lprc_monitor, LPARAM dw_data) {
+    u32* count = (u32*)dw_data;
+    (*count)++;
+    return TRUE;
+}
+
+BOOL CALLBACK store_display_monitors(HMONITOR h_monitor, HDC hdc_monitor, LPRECT lprc_monitor, LPARAM dw_data) {
+    MONITORINFOEX monitor;
+    monitor.cbSize = sizeof(MONITORINFOEX);
+
+    // TODO: clean up error handling
+    if (!GetMonitorInfo(h_monitor, (LPMONITORINFO)&monitor)) return FALSE;
+
+    visual_display_unit* display_list = (visual_display_unit*)dw_data;
+    u64 length = darray_length(display_list);
+
+    display_list[length].screen_left = monitor.rcMonitor.left;
+    display_list[length].screen_right = monitor.rcMonitor.right;
+    display_list[length].screen_bottom = monitor.rcMonitor.bottom;
+    display_list[length].screen_top = monitor.rcMonitor.top;
+
+    display_list[length].work_left = monitor.rcWork.left;
+    display_list[length].work_right = monitor.rcWork.right;
+    display_list[length].work_bottom = monitor.rcWork.bottom;
+    display_list[length].work_top = monitor.rcWork.top;
+
+    DEVMODE dev_mode;
+    dev_mode.dmSize = sizeof(DEVMODE);
+
+    if (EnumDisplaySettings(monitor.szDevice, ENUM_CURRENT_SETTINGS, &dev_mode)) {
+        display_list[length].height = dev_mode.dmPelsHeight;
+        display_list[length].width = dev_mode.dmPelsWidth;
+        display_list[length].aspect_ratio = dev_mode.dmPelsWidth / dev_mode.dmPelsHeight;
+        display_list[length].refresh_rate = dev_mode.dmDisplayFrequency;
+        display_list[length].bit_depth = dev_mode.dmBitsPerPel;
+    }
+
+    darray_length_set(display_list, length + 1);
+
+    return TRUE;
+}
+
+visual_display_unit* platform_get_display_list() {
+    // Count the screens
+    u32 monitor_count = 0;
+    EnumDisplayMonitors(NULL, NULL, count_display_monitors, (LPARAM)&monitor_count);
+    LOG_INFO("Number of displays: %d", monitor_count);
+
+    // Store the information about the screens
+    visual_display_unit* display_list = (visual_display_unit*)darray_reserve(visual_display_unit, monitor_count);
+    EnumDisplayMonitors(NULL, NULL, store_display_monitors, (LPARAM)display_list);
+
+    return display_list;
+}
+
 void platform_sleep(u64 ms) {
     Sleep(ms);
 }
@@ -113,9 +174,9 @@ void platform_console_write_error(const char* message, u8 color) {
     WriteConsoleA(GetStdHandle(STD_ERROR_HANDLE), message, (DWORD)length, number_written, 0);
 }
 
-void* platform_allocate(u64 size, u16 alignment) {
+void* platform_allocate(u64 size, b8 aligned, u16 alignment) {
     void* ptr;
-    if (alignment <= 8) {
+    if (!aligned) {
         ptr = malloc(size);
     } else {
         ptr = _aligned_malloc(size, alignment);
@@ -123,8 +184,8 @@ void* platform_allocate(u64 size, u16 alignment) {
     return ptr;
 }
 
-void platform_free(void* block, u16 alignment) {
-    if (alignment <= 8) {
+void platform_free(void* block, b8 aligned) {
+    if (!aligned) {
         free(block);
     } else {
         _aligned_free(block);
@@ -150,6 +211,8 @@ void* platform_move_memory(void* dest, const void* source, u64 size) {
 LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM w_Param, LPARAM l_Param) {
     switch (msg) {
         case WM_QUIT:
+            event_context context = {0};
+            event_fire(EVENT_CODE_QUIT, NULL, context);
             break;
 
         case WM_DESTROY:

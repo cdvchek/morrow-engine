@@ -9,7 +9,7 @@ BIN_DIR := bin
 TARGET := $(BIN_DIR)/morrow.exe
 
 # === GATHER SOURCES AND OBJECTS ===
-SRCS := $(wildcard $(SRC_DIR)/*.c) $(wildcard $(SRC_DIR)/**/*.c)
+SRCS := $(wildcard $(SRC_DIR)/*.c) $(wildcard $(SRC_DIR)/*/*.c) $(wildcard $(SRC_DIR)/*/*/*.c)
 OBJS := $(SRCS:$(SRC_DIR)/%.c=$(OBJ_DIR)/%.o)
 
 # === DEFAULT RULE ===

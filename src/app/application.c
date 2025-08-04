@@ -1,15 +1,18 @@
 #include "application.h"
 
+#include "containers/darray.h"
 #include "core/clock.h"
 #include "core/event.h"
 #include "core/input.h"
 #include "core/logger.h"
+#include "hardware/display.h"
 #include "platform/platform.h"
 
 typedef struct application_state {
     b8 is_running;
     clock clock;
     f64 last_time;
+    visual_display_unit* displays;
 } application_state;
 
 static b8 initialized = FALSE;
@@ -28,7 +31,15 @@ b8 app_init() {
         LOG_ERROR("Logging initialization failed. External logs will not be recorded.");
     }
 
-    if (!platform_init()) {
+    app_state.displays = platform_get_display_list();
+
+    // TODO: temporary assignment to my right screen at not fullscreen.
+    u32 x = app_state.displays[1].work_left;
+    u32 y = app_state.displays[1].work_top;
+    u32 width = app_state.displays[1].work_right - app_state.displays[1].work_left;
+    u32 height = app_state.displays[1].work_bottom - app_state.displays[1].work_top;
+
+    if (!platform_init(x, y, width, height)) {
         LOG_FATAL("Platform initialization failed.");
         return FALSE;
     }
@@ -60,6 +71,7 @@ void app_shutdown() {
 
     event_shutdown();
     platform_shutdown();
+    darray_destroy(app_state.displays);
     logger_shutdown();
 
     initialized = FALSE;

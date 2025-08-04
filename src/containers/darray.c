@@ -12,7 +12,7 @@ void* _darray_create(u8 initial_count, u64 element_size) {
     u64 total_allocation = padding + header_size + array_allocation;
 
     // Allocate memory and find the header
-    u8* array = (u8*)memsys_allocate(total_allocation, MEMSYS_CODE_DARRAY, element_size);
+    u8* array = (u8*)memsys_allocate(total_allocation, MEMSYS_CODE_DARRAY, FALSE, element_size);
     array += padding;
     u64* header = (u64*)array;
 
@@ -43,7 +43,7 @@ void _darray_destroy(void* array) {
     u8* base = (u8*)array - (header_size + padding);
 
     // Free the base ptr
-    memsys_free(base, total_allocation, MEMSYS_CODE_DARRAY, stride);
+    memsys_free(base, total_allocation, MEMSYS_CODE_DARRAY, FALSE);
 }
 
 // Grows the array by a factor of DARRAY_GROW_FACTOR and returns new array
