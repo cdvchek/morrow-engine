@@ -18,7 +18,7 @@ void opengl_set_shader(void* shader) {
 }
 
 renderer* opengl_create_renderer() {
-    renderer* opengl_renderer = (renderer*)memsys_allocate(sizeof(renderer), MEMSYS_CODE_RENDERER, 0);
+    renderer* opengl_renderer = (renderer*)memsys_allocate(sizeof(renderer), MEMSYS_CODE_RENDERER, FALSE, 0);
     opengl_renderer->init = opengl_init;
     opengl_renderer->shutdown = opengl_shutdown;
     opengl_renderer->set_clear_color = opengl_set_clear_color;

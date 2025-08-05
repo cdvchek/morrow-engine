@@ -45,13 +45,23 @@ b8 platform_init(u32 x, u32 y, u32 width, u32 height) {
         return FALSE;
     }
 
+    u32 titlebar_height = GetSystemMetrics(SM_CYCAPTION);
+    u32 border_x = GetSystemMetrics(SM_CXFRAME);
+
+    RECT rect = {0, 0, width, height - titlebar_height};
+
+    DWORD style = WS_OVERLAPPEDWINDOW;
+    DWORD ex_style = 0;
+
+    AdjustWindowRectEx(&rect, style, FALSE, ex_style);
+
     // Create Window from registered class
     handle = CreateWindowExW(
-        WS_EX_CLIENTEDGE,
+        ex_style,
         L"main_window_class",
         L"Morrow Engine",
-        WS_OVERLAPPEDWINDOW,
-        x, y, width, height,
+        style,
+        (x - border_x), y, rect.right - rect.left, rect.bottom - rect.top,
         NULL, NULL, hInstance, NULL);
 
     if (handle == NULL) {

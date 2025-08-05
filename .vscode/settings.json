@@ -5,7 +5,12 @@
         "*.h": "c",
         "*.c": "c",
         "cmath": "c",
-        "array": "c"
+        "array": "c",
+        "algorithm": "c",
+        "iterator": "c",
+        "ios": "c",
+        "type_traits": "c",
+        "xutility": "c"
     },
     "editor.fontSize": 16,
     "editor.tabSize": 4,
@@ -54,5 +59,6 @@
                 }
             }
         ]
-    }
+    },
+    "makefile.configureOnOpen": false
 }
