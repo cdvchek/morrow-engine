@@ -12,10 +12,15 @@ typedef struct renderer {
     void (*set_shader)(void* shader);
 } renderer;
 
-typedef enum renderer_backend {
+typedef enum renderer_backend_type {
     RENDERER_BACKEND_OPENGL,
     RENDERER_BACKEND_VULKAN,
     RENDERER_DIRECTX
-} renderer_backend;
+} renderer_backend_type;
 
-void renderer_init(renderer_backend backend);
+typedef struct renderer_backend_info {
+    void* window;
+    void* display;
+} renderer_backend_info;
+
+void renderer_init(renderer_backend_type backend);

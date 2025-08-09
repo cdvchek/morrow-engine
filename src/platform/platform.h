@@ -2,6 +2,7 @@
 
 #include "defines.h"
 #include "hardware/display.h"
+#include "renderer/renderer.h"
 
 b8 platform_init(u32 x, u32 y, u32 width, u32 height);
 void platform_shutdown();
@@ -11,6 +12,8 @@ b8 platform_pump_messages();
 f64 platform_get_absolute_time();
 
 visual_display_unit* platform_get_display_list();
+
+b8 platform_get_renderer_backend_info(renderer_backend_info* info);
 
 void platform_sleep(u64 ms);
 

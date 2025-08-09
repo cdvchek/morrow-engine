@@ -33,11 +33,12 @@ b8 app_init() {
 
     app_state.displays = platform_get_display_list();
 
-    // TODO: temporary assignment to my right screen at not fullscreen.
-    u32 x = app_state.displays[1].work_left;
-    u32 y = app_state.displays[1].work_top;
-    u32 width = app_state.displays[1].work_right - app_state.displays[1].work_left;
-    u32 height = app_state.displays[1].work_bottom - app_state.displays[1].work_top;
+    // TODO: temporary assignment to my right screen at fullscreen.
+    u8 monitor = 1;
+    u32 x = app_state.displays[monitor].work_left;
+    u32 y = app_state.displays[monitor].work_top;
+    u32 width = app_state.displays[monitor].screen_right - app_state.displays[monitor].screen_left;
+    u32 height = app_state.displays[monitor].screen_bottom - app_state.displays[monitor].screen_top;
 
     if (!platform_init(x, y, width, height)) {
         LOG_FATAL("Platform initialization failed.");

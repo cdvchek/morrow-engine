@@ -12,6 +12,11 @@
 #include "core/memsys.h"
 #include "platform.h"
 
+static b8 initialized = FALSE;
+
+static HWND hwnd = 0;
+static HDC hdc = 0;
+
 static f64 clock_frequency;
 static LARGE_INTEGER start_time;
 
@@ -41,16 +46,16 @@ b8 platform_init(u32 x, u32 y, u32 width, u32 height) {
 
     // Register class
     if (!RegisterClassExW(&wc)) {
-        LOG_FATAL("Window class registration failed.")
+        LOG_FATAL("Window class registration failed.");
         return FALSE;
     }
 
-    u32 titlebar_height = GetSystemMetrics(SM_CYCAPTION);
-    u32 border_x = GetSystemMetrics(SM_CXFRAME);
+    // u32 titlebar_height = GetSystemMetrics(SM_CYCAPTION);
+    // u32 border_x = GetSystemMetrics(SM_CXFRAME);
 
-    RECT rect = {0, 0, width, height - titlebar_height};
+    RECT rect = {0, 0, width, height};
 
-    DWORD style = WS_OVERLAPPEDWINDOW;
+    DWORD style = WS_POPUPWINDOW;
     DWORD ex_style = 0;
 
     AdjustWindowRectEx(&rect, style, FALSE, ex_style);
@@ -61,16 +66,19 @@ b8 platform_init(u32 x, u32 y, u32 width, u32 height) {
         L"main_window_class",
         L"Morrow Engine",
         style,
-        (x - border_x), y, rect.right - rect.left, rect.bottom - rect.top,
+        x, y, rect.right - rect.left - 2, rect.bottom - rect.top - 2,
         NULL, NULL, hInstance, NULL);
 
-    if (handle == NULL) {
-        LOG_FATAL("Window creation failed.")
+    if (!handle) {
+        LOG_FATAL("Window creation failed.");
         return FALSE;
     }
 
     ShowWindow(handle, SW_SHOW);
     UpdateWindow(handle);
+
+    hwnd = handle;
+    hdc = GetDC(handle);
 
     // Clock setup
     LARGE_INTEGER frequency;
@@ -81,10 +89,18 @@ b8 platform_init(u32 x, u32 y, u32 width, u32 height) {
     // Input translation
     input_translation_array_init();
 
+    initialized = TRUE;
+
     return TRUE;
 }
 
 void platform_shutdown() {
+    if (hdc && hwnd) {
+        ReleaseDC(hwnd, hdc);
+        hdc = 0;
+    }
+    hwnd = 0;
+    initialized = FALSE;
 }
 
 b8 platform_pump_messages() {
@@ -156,6 +172,13 @@ visual_display_unit* platform_get_display_list() {
     EnumDisplayMonitors(NULL, NULL, store_display_monitors, (LPARAM)display_list);
 
     return display_list;
+}
+
+b8 platform_get_renderer_backend_info(renderer_backend_info* info) {
+    if (!initialized) return FALSE;
+    info->window = (void*)hwnd;
+    info->display = (void*)hdc;
+    return TRUE;
 }
 
 void platform_sleep(u64 ms) {
